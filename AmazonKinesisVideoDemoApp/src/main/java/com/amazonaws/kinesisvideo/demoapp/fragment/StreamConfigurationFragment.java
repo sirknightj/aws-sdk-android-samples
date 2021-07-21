@@ -59,7 +59,7 @@ public class StreamConfigurationFragment extends Fragment {
                              final ViewGroup container,
                              final Bundle savedInstanceState) {
         if (ContextCompat.checkSelfPermission(this.getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this.getActivity(), new String[]{Manifest.permission.CAMERA}, 9393);
+            ActivityCompat.requestPermissions(this.getActivity(), new String[]{Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, 9393);
         }
 
         getActivity().setTitle(getActivity().getString(R.string.title_fragment_stream));
