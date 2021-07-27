@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 
 import com.amazonaws.kinesisvideo.client.KinesisVideoClient;
@@ -148,6 +149,11 @@ public class StreamConfigurationFragment extends Fragment {
         extras.putString(
                 StreamingFragment.KEY_STREAM_NAME,
                 mStreamName.getText().toString());
+
+        extras.putBoolean(StreamingFragment.KEY_IS_NEW_BEHAVIOR, ((CheckBox) getView().findViewById(R.id.new_behavior)).isChecked());
+        extras.putBoolean(StreamingFragment.KEY_ROTATE_DISPLAY, ((CheckBox) getView().findViewById(R.id.rotate_display)).isChecked());
+
+
 
         navActivity.startStreamingFragment(extras);
     }
