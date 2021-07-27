@@ -81,14 +81,6 @@
                 android:checked="false"
                 />
 
-            <CheckBox
-                android:id="@+id/rotate_display"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Rotate Display"
-                android:checked="false"
-                />
-
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="20dp"/>

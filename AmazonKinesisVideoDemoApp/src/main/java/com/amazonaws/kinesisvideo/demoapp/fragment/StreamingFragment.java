@@ -30,20 +30,16 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
     public static final String KEY_MEDIA_SOURCE_CONFIGURATION = "mediaSourceConfiguration";
     public static final String KEY_STREAM_NAME = "streamName";
     public static final String KEY_IS_NEW_BEHAVIOR = "isNewBehavior";
-    public static final String KEY_ROTATE_DISPLAY = "rotateDisplay";
 
     private static final String TAG = StreamingFragment.class.getSimpleName();
 
     private Button mStartStreamingButton;
-    private Button takePhotoButton;
     private KinesisVideoClient mKinesisVideoClient;
     private String mStreamName;
     private AndroidCameraMediaSourceConfiguration mConfiguration;
     private AndroidCameraMediaSource mCameraMediaSource;
     private TextureView mTextureView;
     private boolean isNewBehavior;
-    private boolean rotateDisplay;
-    private Button mRotateRightButton;
 
     private SimpleNavActivity navActivity;
 
@@ -61,14 +57,10 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
         mStreamName = getArguments().getString(KEY_STREAM_NAME);
         mConfiguration = getArguments().getParcelable(KEY_MEDIA_SOURCE_CONFIGURATION);
         isNewBehavior = getArguments().getBoolean(KEY_IS_NEW_BEHAVIOR);
-        rotateDisplay = getArguments().getBoolean(KEY_ROTATE_DISPLAY);
 
         final View view = inflater.inflate(R.layout.fragment_streaming, container, false);
         mTextureView = (TextureView) view.findViewById(R.id.texture);
         mTextureView.setSurfaceTextureListener(this);
-        if (rotateDisplay) {
-            mTextureView.setRotation(-90);
-        }
         return view;
     }
 
@@ -96,25 +88,6 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         mStartStreamingButton = (Button) view.findViewById(R.id.start_streaming);
         mStartStreamingButton.setOnClickListener(stopStreamingWhenClicked());
-
-        takePhotoButton = (Button) view.findViewById(R.id.take_photo);
-        takePhotoButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                EncoderFrameSubmitter.doneWriting = false;
-                Toast.makeText(getContext(), "Photo taken!", Toast.LENGTH_LONG).show();
-            }
-        });
-
-        mRotateRightButton = (Button) view.findViewById(R.id.rotate_right);
-        mRotateRightButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                float newRotation = (mTextureView.getRotation() + 90) % 360;
-                mTextureView.setRotation(newRotation);
-                Toast.makeText(getContext(), "The rotation is now " + newRotation, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     @Override
@@ -188,21 +161,15 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
         if (mWidth != 0 && mHeight != 0 && mTextureView != null) {
             Log.d(TAG, "SETTING UP THE MATRIX!");
             Matrix matrix = new Matrix();
-            int rotation = ((WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
-            Log.d(TAG, "ROTATION IS: " + rotation);
-
             RectF textureRectF = new RectF(0, 0, mTextureView.getWidth(), mTextureView.getHeight());
-            RectF previewRectF = new RectF(0, 0, mHeight, mWidth);
+            RectF previewRectF = new RectF(0, 0, mHeight, mWidth); // since it's rotated, the height and width are switched
             float centerX = textureRectF.centerX();
             float centerY = textureRectF.centerY();
             previewRectF.offset(centerX - previewRectF.centerX(),
                     centerY - previewRectF.centerY());
-            float scale = Math.max((float) mWidth / mTextureView.getWidth(), (float) mHeight / mTextureView.getHeight());
             matrix.setRectToRect(textureRectF, previewRectF, Matrix.ScaleToFit.FILL);
-            matrix.postScale(scale, scale, centerX, centerY);
-            Log.d(TAG, "scale: " + scale);
-
             matrix.postRotate(-90, centerX, centerY);
+
             mTextureView.setTransform(matrix);
 
             Log.d(TAG, "textureRectF: " + textureRectF.toShortString());

@@ -151,8 +151,6 @@ public class StreamConfigurationFragment extends Fragment {
                 mStreamName.getText().toString());
 
         extras.putBoolean(StreamingFragment.KEY_IS_NEW_BEHAVIOR, ((CheckBox) getView().findViewById(R.id.new_behavior)).isChecked());
-        extras.putBoolean(StreamingFragment.KEY_ROTATE_DISPLAY, ((CheckBox) getView().findViewById(R.id.rotate_display)).isChecked());
-
 
 
         navActivity.startStreamingFragment(extras);
