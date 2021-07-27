@@ -18,6 +18,7 @@ import com.amazonaws.kinesisvideo.demoapp.R;
 import com.amazonaws.kinesisvideo.demoapp.activity.SimpleNavActivity;
 import com.amazonaws.kinesisvideo.client.KinesisVideoClient;
 import com.amazonaws.mobileconnectors.kinesisvideo.client.KinesisVideoAndroidClientFactory;
+import com.amazonaws.mobileconnectors.kinesisvideo.encoding.EncoderFrameSubmitter;
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidCameraMediaSource;
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidCameraMediaSourceConfiguration;
 
@@ -28,6 +29,7 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
     private static final String TAG = StreamingFragment.class.getSimpleName();
 
     private Button mStartStreamingButton;
+    private Button takePhotoButton;
     private KinesisVideoClient mKinesisVideoClient;
     private String mStreamName;
     private AndroidCameraMediaSourceConfiguration mConfiguration;
@@ -79,6 +81,15 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         mStartStreamingButton = (Button) view.findViewById(R.id.start_streaming);
         mStartStreamingButton.setOnClickListener(stopStreamingWhenClicked());
+
+        takePhotoButton = (Button) view.findViewById(R.id.button2);
+        takePhotoButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EncoderFrameSubmitter.doneWriting = false;
+                Toast.makeText(getContext(), "Photo taken!", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override
