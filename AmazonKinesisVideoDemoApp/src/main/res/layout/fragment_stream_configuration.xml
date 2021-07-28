@@ -73,18 +73,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="20dp"/>
 
-            <CheckBox
-                android:id="@+id/new_behavior"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Use New Behavior"
-                android:checked="false"
-                />
-
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="20dp"/>
-
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

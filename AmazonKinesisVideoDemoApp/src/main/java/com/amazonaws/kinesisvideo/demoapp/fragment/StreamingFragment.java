@@ -1,6 +1,5 @@
 package com.amazonaws.kinesisvideo.demoapp.fragment;
 
-import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
@@ -12,7 +11,6 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -22,14 +20,12 @@ import com.amazonaws.kinesisvideo.demoapp.R;
 import com.amazonaws.kinesisvideo.demoapp.activity.SimpleNavActivity;
 import com.amazonaws.kinesisvideo.client.KinesisVideoClient;
 import com.amazonaws.mobileconnectors.kinesisvideo.client.KinesisVideoAndroidClientFactory;
-import com.amazonaws.mobileconnectors.kinesisvideo.encoding.EncoderFrameSubmitter;
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidCameraMediaSource;
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidCameraMediaSourceConfiguration;
 
 public class StreamingFragment extends Fragment implements TextureView.SurfaceTextureListener {
     public static final String KEY_MEDIA_SOURCE_CONFIGURATION = "mediaSourceConfiguration";
     public static final String KEY_STREAM_NAME = "streamName";
-    public static final String KEY_IS_NEW_BEHAVIOR = "isNewBehavior";
 
     private static final String TAG = StreamingFragment.class.getSimpleName();
 
@@ -39,7 +35,8 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
     private AndroidCameraMediaSourceConfiguration mConfiguration;
     private AndroidCameraMediaSource mCameraMediaSource;
     private TextureView mTextureView;
-    private boolean isNewBehavior;
+    private int mWidth;
+    private int mHeight;
 
     private SimpleNavActivity navActivity;
 
@@ -56,7 +53,6 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
         getArguments().setClassLoader(AndroidCameraMediaSourceConfiguration.class.getClassLoader());
         mStreamName = getArguments().getString(KEY_STREAM_NAME);
         mConfiguration = getArguments().getParcelable(KEY_MEDIA_SOURCE_CONFIGURATION);
-        isNewBehavior = getArguments().getBoolean(KEY_IS_NEW_BEHAVIOR);
 
         final View view = inflater.inflate(R.layout.fragment_streaming, container, false);
         mTextureView = (TextureView) view.findViewById(R.id.texture);
@@ -142,24 +138,17 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
         }
     }
 
-    ////
-    // TextureView.SurfaceTextureListener methods
-    ////
-
-    private int mWidth;
-    private int mHeight;
-
-    private void updateWidthAndHeight(int width, int height) {
+    private void updateSurfaceTextureDims(int width, int height) {
         mWidth = width;
         mHeight = height;
-        if (isNewBehavior) {
-            updateTransformMatrix();
-        }
+        Log.d(TAG, "SurfaceTexture Width: " + width);
+        Log.d(TAG, "SurfaceTexture Height: " + height);
+        updateTransformMatrix();
     }
 
     private void updateTransformMatrix() {
         if (mWidth != 0 && mHeight != 0 && mTextureView != null) {
-            Log.d(TAG, "SETTING UP THE MATRIX!");
+            Log.d(TAG, "updating the matrix");
             Matrix matrix = new Matrix();
             RectF textureRectF = new RectF(0, 0, mTextureView.getWidth(), mTextureView.getHeight());
             RectF previewRectF = new RectF(0, 0, mHeight, mWidth); // since it's rotated, the height and width are switched
@@ -177,18 +166,20 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
         }
     }
 
+    ////
+    // TextureView.SurfaceTextureListener methods
+    ////
+
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
         surfaceTexture.setDefaultBufferSize(1280, 720);
-        Log.d(TAG, "SurfaceTexture Width " + i);
-        Log.d(TAG, "SurfaceTexture Height " + i1);
-        updateWidthAndHeight(i, i1);
+        updateSurfaceTextureDims(i, i1);
         createClientAndStartStreaming(surfaceTexture);
     }
 
     @Override
     public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
-        updateWidthAndHeight(i, i1);
+        updateSurfaceTextureDims(i, i1);
     }
 
     @Override
