@@ -18,9 +18,7 @@ public class StartUpActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        EncoderFrameSubmitter.context = getApplicationContext();
-
+        
         final AWSMobileClient auth = AWSMobileClient.getInstance();
 
         if (auth.isSignedIn()) {
