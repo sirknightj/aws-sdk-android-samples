@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.util.Log;
+import android.util.Size;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.TextureView;
@@ -23,9 +24,17 @@ import com.amazonaws.mobileconnectors.kinesisvideo.client.KinesisVideoAndroidCli
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidCameraMediaSource;
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidCameraMediaSourceConfiguration;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import static com.amazonaws.mobileconnectors.kinesisvideo.util.CameraUtils.getSupportedResolutions;
+
 public class StreamingFragment extends Fragment implements TextureView.SurfaceTextureListener {
     public static final String KEY_MEDIA_SOURCE_CONFIGURATION = "mediaSourceConfiguration";
     public static final String KEY_STREAM_NAME = "streamName";
+    public static final String KEY_ROTATION = "rotation";
 
     private static final String TAG = StreamingFragment.class.getSimpleName();
 
@@ -37,6 +46,8 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
     private TextureView mTextureView;
     private int mWidth;
     private int mHeight;
+    private float mRotation;
+    private Size mPreviewSize;
 
     private SimpleNavActivity navActivity;
 
@@ -53,6 +64,7 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
         getArguments().setClassLoader(AndroidCameraMediaSourceConfiguration.class.getClassLoader());
         mStreamName = getArguments().getString(KEY_STREAM_NAME);
         mConfiguration = getArguments().getParcelable(KEY_MEDIA_SOURCE_CONFIGURATION);
+        mRotation = getArguments().getFloat(KEY_ROTATION);
 
         final View view = inflater.inflate(R.layout.fragment_streaming, container, false);
         mTextureView = (TextureView) view.findViewById(R.id.texture);
@@ -139,31 +151,50 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
     }
 
     private void updateSurfaceTextureDims(int width, int height) {
-        mWidth = width;
-        mHeight = height;
-        Log.d(TAG, "SurfaceTexture Width: " + width);
-        Log.d(TAG, "SurfaceTexture Height: " + height);
-        updateTransformMatrix();
+        mPreviewSize = getPreferredPreviewSize(getSupportedResolutions(getActivity(), mConfiguration.getCameraId()), width, height);
+
+        Log.d(TAG, "rotation is " + mRotation);
+
+        if (mPreviewSize == null || mTextureView == null) {
+            return;
+        }
+
+        final Matrix transformMatrix = new Matrix();
+        final RectF textureViewRect = new RectF(0, 0, width, height);
+        final RectF outputPreviewRect = new RectF(0, 0, mPreviewSize.getHeight(), mPreviewSize.getWidth());
+
+        final float centerX = textureViewRect.centerX();
+        final float centerY = textureViewRect.centerY();
+        textureViewRect.offset(centerX - outputPreviewRect.centerX(), centerY - outputPreviewRect.centerY());
+        transformMatrix.setRectToRect(textureViewRect, outputPreviewRect, Matrix.ScaleToFit.FILL);
+        final float scale = Math.min((float) width / mPreviewSize.getWidth(), (float) height / mPreviewSize.getHeight());
+        transformMatrix.postScale(scale, scale, centerX, centerY);
+        transformMatrix.postRotate(mRotation - 90f);
+        mTextureView.setTransform(transformMatrix);
     }
 
-    private void updateTransformMatrix() {
-        if (mWidth != 0 && mHeight != 0 && mTextureView != null) {
-            Log.d(TAG, "updating the matrix");
-            Matrix matrix = new Matrix();
-            RectF textureRectF = new RectF(0, 0, mTextureView.getWidth(), mTextureView.getHeight());
-            RectF previewRectF = new RectF(0, 0, mHeight, mWidth); // since it's rotated, the height and width are switched
-            float centerX = textureRectF.centerX();
-            float centerY = textureRectF.centerY();
-            previewRectF.offset(centerX - previewRectF.centerX(),
-                    centerY - previewRectF.centerY());
-            matrix.setRectToRect(textureRectF, previewRectF, Matrix.ScaleToFit.FILL);
-            matrix.postRotate(-90, centerX, centerY);
-
-            mTextureView.setTransform(matrix);
-
-            Log.d(TAG, "textureRectF: " + textureRectF.toShortString());
-            Log.d(TAG, "previewRectF: " + previewRectF.toShortString());
+    private Size getPreferredPreviewSize(List<Size> sizes, int width, int height) {
+        List<Size> possibleSizes = new ArrayList<>();
+        for (Size size : sizes) {
+            if (width > height) {
+                if (size.getWidth() > width && size.getHeight() > height) {
+                    possibleSizes.add(size);
+                }
+            } else {
+                if (size.getWidth() > height && size.getWidth() > width) {
+                    possibleSizes.add(size);
+                }
+            }
         }
+        if (possibleSizes.size() > 0) {
+            return Collections.min(possibleSizes, new Comparator<Size>() {
+                @Override
+                public int compare(Size s1, Size s2) {
+                    return Long.signum(s1.getWidth() * s1.getHeight() - s2.getWidth() * s2.getHeight());
+                }
+            });
+        }
+        return sizes.get(0);
     }
 
     ////
@@ -173,7 +204,7 @@ public class StreamingFragment extends Fragment implements TextureView.SurfaceTe
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
         surfaceTexture.setDefaultBufferSize(1280, 720);
-        updateSurfaceTextureDims(i, i1);
+        updateSurfaceTextureDims(i1, i);
         createClientAndStartStreaming(surfaceTexture);
     }
 

@@ -73,6 +73,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="20dp"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rotate Camera Preview"/>
+
+            <Spinner
+                android:id="@+id/rotation_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="left"
+                android:layout_marginStart="20dp"
+                style="@style/Widget.AppCompat.Spinner"/>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="20dp"/>
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

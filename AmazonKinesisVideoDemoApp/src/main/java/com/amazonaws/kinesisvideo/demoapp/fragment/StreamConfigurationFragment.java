@@ -1,6 +1,7 @@
 package com.amazonaws.kinesisvideo.demoapp.fragment;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import androidx.core.app.ActivityCompat;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.amazonaws.kinesisvideo.client.KinesisVideoClient;
 import com.amazonaws.kinesisvideo.client.mediasource.CameraMediaSourceConfiguration;
@@ -22,10 +24,16 @@ import com.amazonaws.kinesisvideo.demoapp.R;
 import com.amazonaws.kinesisvideo.demoapp.activity.SimpleNavActivity;
 import com.amazonaws.kinesisvideo.demoapp.ui.adapter.ToStrings;
 import com.amazonaws.kinesisvideo.demoapp.ui.widget.StringSpinnerWidget;
+import com.amazonaws.kinesisvideo.internal.client.mediasource.MediaSource;
 import com.amazonaws.kinesisvideo.producer.StreamInfo;
 import com.amazonaws.mobileconnectors.kinesisvideo.client.KinesisVideoAndroidClientFactory;
 import com.amazonaws.mobileconnectors.kinesisvideo.data.MimeType;
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidCameraMediaSourceConfiguration;
+import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.file.ImageFileMediaSource;
+import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.file.ImageFileMediaSourceConfiguration;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 import static com.amazonaws.mobileconnectors.kinesisvideo.util.CameraUtils.getCameras;
 import static com.amazonaws.mobileconnectors.kinesisvideo.util.CameraUtils.getSupportedResolutions;
@@ -45,6 +53,7 @@ public class StreamConfigurationFragment extends Fragment {
     private StringSpinnerWidget<CameraMediaSourceConfiguration> mCamerasDropdown;
     private StringSpinnerWidget<Size> mResolutionDropdown;
     private StringSpinnerWidget<MimeType> mMimeTypeDropdown;
+    private StringSpinnerWidget<Float> mRotationDropdown;
 
     private SimpleNavActivity navActivity;
 
@@ -101,7 +110,21 @@ public class StreamConfigurationFragment extends Fragment {
                 R.id.codecs_spinner,
                 getSupportedMimeTypes());
 
+        mRotationDropdown = new StringSpinnerWidget<>(
+                getActivity(),
+                view,
+                R.id.rotation_spinner,
+                getRotations());
         return view;
+    }
+
+    private ArrayList<Float> getRotations() {
+        final ArrayList<Float> rotations = new ArrayList<>();
+        rotations.add(0f);
+        rotations.add(90f);
+        rotations.add(180f);
+        rotations.add(270f);
+        return rotations;
     }
 
     private void select640orBelow() {
@@ -148,6 +171,8 @@ public class StreamConfigurationFragment extends Fragment {
         extras.putString(
                 StreamingFragment.KEY_STREAM_NAME,
                 mStreamName.getText().toString());
+
+        extras.putFloat(StreamingFragment.KEY_ROTATION, mRotationDropdown.getSelectedItem());
 
         navActivity.startStreamingFragment(extras);
     }
