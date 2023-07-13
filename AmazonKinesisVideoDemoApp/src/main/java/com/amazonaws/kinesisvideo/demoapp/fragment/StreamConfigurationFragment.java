@@ -2,6 +2,11 @@ package com.amazonaws.kinesisvideo.demoapp.fragment;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+<<<<<<< Updated upstream
+=======
+import android.graphics.ImageFormat;
+import android.hardware.camera2.CameraCharacteristics;
+>>>>>>> Stashed changes
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -14,6 +19,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.kinesisvideo.client.KinesisVideoClient;
 import com.amazonaws.kinesisvideo.client.mediasource.CameraMediaSourceConfiguration;
 import com.amazonaws.kinesisvideo.common.exception.KinesisVideoException;
@@ -23,10 +30,17 @@ import com.amazonaws.kinesisvideo.demoapp.activity.SimpleNavActivity;
 import com.amazonaws.kinesisvideo.demoapp.ui.adapter.ToStrings;
 import com.amazonaws.kinesisvideo.demoapp.ui.widget.StringSpinnerWidget;
 import com.amazonaws.kinesisvideo.producer.StreamInfo;
+import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobileconnectors.kinesisvideo.client.KinesisVideoAndroidClientFactory;
 import com.amazonaws.mobileconnectors.kinesisvideo.data.MimeType;
 import com.amazonaws.mobileconnectors.kinesisvideo.mediasource.android.AndroidCameraMediaSourceConfiguration;
 
+<<<<<<< Updated upstream
+=======
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+
+>>>>>>> Stashed changes
 import static com.amazonaws.mobileconnectors.kinesisvideo.util.CameraUtils.getCameras;
 import static com.amazonaws.mobileconnectors.kinesisvideo.util.CameraUtils.getSupportedResolutions;
 import static com.amazonaws.mobileconnectors.kinesisvideo.util.VideoEncoderUtils.getSupportedMimeTypes;
@@ -66,12 +80,22 @@ public class StreamConfigurationFragment extends Fragment {
 
         final View view = inflater.inflate(R.layout.fragment_stream_configuration, container, false);
 
+        final Thread thread = new Thread(() -> {
+            try {
+                ((AWSMobileClient) KinesisVideoDemoApp.getCredentialsProvider()).getAWSCredentials();
+            } catch (final Exception e) {
+                Log.e(TAG, "Exception while fetching credentials", e);
+            }
+        });
+        thread.start();
+
         try {
+            thread.join();
             mKinesisVideoClient = KinesisVideoAndroidClientFactory.createKinesisVideoClient(
                     getActivity(),
                     KinesisVideoDemoApp.KINESIS_VIDEO_REGION,
                     KinesisVideoDemoApp.getCredentialsProvider());
-        } catch (KinesisVideoException e) {
+        } catch (final InterruptedException | KinesisVideoException e) {
             Log.e(TAG, "Failed to create Kinesis Video client", e);
         }
 
